@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package user;
+
+option go_package = "proto/;proto";
+
+service UserService {
+  rpc GetUserById(GetUserByIdRequest) returns (User) {}
+  rpc CreateUser(CreateUserRequest) returns (User) {}
+}
+
+enum UserRoles {
+  UNKNOWN = 0;
+  COMMON = 1;
+  SUPER = 2;
+}
+
+message User {
+  string Id = 1;
+  string Login = 2;
+  UserRoles Role = 3;
+}
+
+message GetUserByIdRequest {
+  string id = 1;
+}
+
+message CreateUserRequest {
+  string login = 1;
+  string password = 2;
+  UserRoles role = 3;
+}

@@ -1,0 +1,79 @@
+version: "3.7"
+
+services:
+  user:
+    container_name: user
+    build:
+      context: ./microservices/user
+      dockerfile: Dockerfile
+    volumes:
+      - ./microservices/user:/usr/src/app
+    command: fresh
+    working_dir: /usr/src/app
+    restart: unless-stopped
+    networks:
+      - demo-golang-network
+
+  chat:
+    container_name: chat
+    build:
+      context: ./microservices/chat
+      dockerfile: Dockerfile
+    volumes:
+      - ./microservices/chat:/usr/src/app
+    command: fresh
+    working_dir: /usr/src/app
+    depends_on:
+      - nats
+    restart: unless-stopped
+    networks:
+      - demo-golang-network
+
+  http:
+    container_name: http
+    build:
+      context: ./microservices/http
+      dockerfile: Dockerfile
+    volumes:
+      - ./microservices/http:/usr/src/app
+    command: fresh
+    ports:
+      - 5001:8080
+    working_dir: /usr/src/app
+    depends_on:
+      - user
+      - chat
+    restart: unless-stopped
+    networks:
+      - demo-golang-network
+
+  websocket:
+    container_name: websocket
+    build:
+      context: ./microservices/websocket
+      dockerfile: Dockerfile
+    volumes:
+      - ./microservices/websocket:/usr/src/app
+    command: fresh
+    ports:
+      - 5000:8080
+    working_dir: /usr/src/app
+    depends_on:
+      - user
+      - chat
+      - nats
+    restart: unless-stopped
+    networks:
+      - demo-golang-network
+
+  nats:
+    container_name: nats
+    entrypoint: "/nats-server -c nats-server.conf -DV"
+    image: nats
+    networks:
+      - demo-golang-network
+
+
+networks:
+  demo-golang-network:
+    driver: bridge
